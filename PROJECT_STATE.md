@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 7A — Authorization, ownership isolation and security fixes**
+**Phase 7C — Notification service and email templates**
 
 ## Completed work
 
@@ -52,25 +52,60 @@
 - Enforced customer ownership on invoice payment-history reads with standardized `403 FORBIDDEN` responses.
 - Restricted tax and discount configuration reads to Admin/Staff.
 - Added Phase 7A security regression coverage for cross-customer access, customer quotation acceptance, configuration access, staff administration, and invalid tokens.
+- Removed client authority over quotation tax rates, line totals, discounts, and calculated amounts.
+- Added active/effective server tax selection with currency and product-type matching, integer minor-unit rounding, and tax configuration snapshots.
+- Added server-side discount currency, product eligibility, threshold, date, status, usage, and subtotal-cap validation.
+- Added immutable quotation, subscription, and invoice calculation snapshots.
+- Added idempotent discount usage accounting when quotations are accepted, with conditional atomic increments and a documented standalone-MongoDB fallback.
+- Added Phase 7B financial regression tests for tax selection, rounding, manipulation resistance, expired tax rules, discount usage, and repeated confirmation.
+- Added reusable notification delivery tracking for quotation, invoice, payment, overdue, and renewal messages.
+- Added responsive HTML and plain-text templates using persisted financial records and currency-safe formatting.
+- Integrated notifications after successful quotation sending, invoice confirmation, payment recording, and overdue billing transitions.
+- Added idempotent notification keys, retry eligibility, safe delivery failure recording, and JSON test transport coverage.
+- Added optional SMTP configuration with safe failure when production delivery is not configured.
 
-## Phase 7A files changed
+## Phase 7C files changed
 
 - `server/src/controllers/core.js`
 - `server/src/routes/core.js`
 - `server/test/authorization.security.test.js`
+- `server/src/models/common.js`
+- `server/src/models/Quotation.js`
+- `server/src/models/Subscription.js`
+- `server/src/models/Invoice.js`
+- `server/src/services/core.js`
+- `server/src/validators/core.js`
+- `client/src/pages/ResourcePages.jsx`
+- `server/test/core.test.js`
+- `server/src/models/Notification.js`
+- `server/src/models/index.js`
+- `server/src/config/env.js`
+- `server/src/services/mail.js`
+- `server/src/services/notifications.js`
+- `server/src/services/core.js`
+- `server/test/notifications.test.js`
+- `server/.env.example`
 
-## Phase 7A validation
+## Phase 7C validation
 
-- `npm run check` — passed: client/server lint, 30 tests, and client production build.
-- Security regression suite: 3 tests passed.
-- Verified Admin and Staff legitimate access, Staff denial from staff administration, customer isolation, customer denial of administrative configuration, and invalid-token rejection.
+- Backend tests — passed: 28 tests.
+- Frontend tests — passed: 8 tests.
+- Server lint — passed.
+- Client production build — passed.
+- Verified tax and discount calculations ignore client-calculated financial fields and preserve snapshots.
+- Verified notification templates include HTML/plain text, trusted persisted totals, dates, currency, and no credentials/tokens.
+- Verified JSON test transport and duplicate-safe notification records.
+- Added a one-time interactive Admin bootstrap CLI using hidden password input, existing password validation/hashing, duplicate safeguards, and guaranteed database cleanup.
 - No Git commands, commits, pushes, branches, or PDF changes were made.
 
-## Phase 7A remaining risks
+## Phase 7C remaining risks
 
 - Demonstration bearer tokens remain in browser localStorage and require HttpOnly Secure cookies plus CSRF protection before production.
 - Payment recording uses a standalone-MongoDB fallback when transactions are unavailable; production should use a replica set.
+- Standalone MongoDB discount confirmation fallback cannot provide cross-document transaction atomicity; use a replica set for production.
+- The current tax model has no required-tax/exemption flag or request jurisdiction field; absent applicable rules therefore calculate zero tax rather than inventing a rate.
 - Quotation/customer/invoice APIs still need broader pagination and audit logging in later phases.
+- SMTP delivery requires `SMTP_HOST` in non-test environments; failed delivery is recorded for retry but no background retry worker is configured yet.
 
 ## Architecture decisions
 

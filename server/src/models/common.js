@@ -10,6 +10,8 @@ export const snapshotLineSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   variantId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductVariant' },
   planId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan' },
+  taxConfigurationId: { type: mongoose.Schema.Types.ObjectId, ref: 'TaxConfiguration' },
+  taxConfigurationName: { type: String, trim: true },
   name: { type: String, required: true, set: normalizeName, trim: true },
   quantity: { ...positiveInteger, required: true },
   unitPriceMinor: { ...nonNegativeInteger, required: true },
@@ -19,6 +21,25 @@ export const snapshotLineSchema = new mongoose.Schema({
   discountAmountMinor: { ...nonNegativeInteger, required: true, default: 0 },
   subtotalMinor: { ...nonNegativeInteger, required: true },
   totalMinor: { ...nonNegativeInteger, required: true }
+}, { _id: false });
+
+export const calculationSnapshotSchema = new mongoose.Schema({
+  calculatedAt: { type: Date, required: true },
+  taxConfigurations: [{
+    taxConfigurationId: { type: mongoose.Schema.Types.ObjectId, ref: 'TaxConfiguration' },
+    name: String,
+    rateBasisPoints: { ...nonNegativeInteger, required: true },
+    currencyScope: String,
+    jurisdiction: String
+  }],
+  discount: {
+    discountId: { type: mongoose.Schema.Types.ObjectId, ref: 'Discount' },
+    name: String,
+    kind: { type: String, enum: ['FIXED', 'PERCENTAGE'] },
+    value: Number,
+    eligibleSubtotalMinor: { ...nonNegativeInteger, default: 0 },
+    amountMinor: { ...nonNegativeInteger, default: 0 }
+  }
 }, { _id: false });
 
 export const addressSchema = new mongoose.Schema({

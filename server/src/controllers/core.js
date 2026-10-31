@@ -76,7 +76,7 @@ export const quotations = {
   list: (req, res, next) => list(Quotation, req, res).catch(next),
   get: (req, res, next) => get(Quotation, req, res).catch(next),
   create: (req, res, next) => mutate(() => core.quotationCreate(req.body), req, res, 201).catch(next),
-  accept: (req, res, next) => mutate(() => Quotation.findOneAndUpdate({ _id: id(req), status: 'SENT' }, { status: 'ACCEPTED' }, { new: true }), req, res).catch(next),
+  accept: (req, res, next) => mutate(() => core.acceptQuotation(id(req)), req, res).catch(next),
   convert: (req, res, next) => mutate(() => core.quotationConvert(id(req)), req, res).catch(next)
 };
 export const subscriptions = {

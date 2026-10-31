@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { addMonetaryTotals, snapshotLineSchema, timestampOptions } from './common.js';
+import { addMonetaryTotals, calculationSnapshotSchema, snapshotLineSchema, timestampOptions } from './common.js';
 
 const quotationSchema = new mongoose.Schema({
   quotationNumber: { type: String, required: true, unique: true, trim: true },
@@ -10,6 +10,8 @@ const quotationSchema = new mongoose.Schema({
   validUntil: { type: Date, required: true },
   lines: { type: [snapshotLineSchema], required: true, validate: value => value.length > 0 },
   notes: { type: String, trim: true },
+  calculationSnapshot: calculationSnapshotSchema,
+  discountUsageAccountedAt: Date,
   convertedSubscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', unique: true, sparse: true }
 }, timestampOptions);
 

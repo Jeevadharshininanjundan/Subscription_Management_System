@@ -6,9 +6,7 @@ const minor = z.number().int().nonnegative();
 const line = z.object({
   productId: id.optional(), variantId: id.optional(), planId: id.optional(),
   name: z.string().trim().min(1), quantity: z.number().int().positive(),
-  unitPriceMinor: minor, currency, taxRateBasisPoints: minor.default(0),
-  taxAmountMinor: minor.default(0), discountAmountMinor: minor.default(0),
-  subtotalMinor: minor.default(0), totalMinor: minor.default(0)
+  unitPriceMinor: minor, currency, taxConfigurationId: id.optional()
 });
 
 export const productSchema = z.object({
@@ -31,7 +29,8 @@ export const customerSchema = z.object({
 export const quotationSchema = z.object({
   customerId: id, status: z.enum(['DRAFT', 'SENT']).default('DRAFT'),
   validUntil: z.coerce.date(), issuedAt: z.coerce.date().optional(),
-  lines: z.array(line).min(1), currency: currency.optional(), notes: z.string().trim().max(2000).optional()
+  lines: z.array(line).min(1), currency: currency.optional(),
+  discountId: id.optional(), notes: z.string().trim().max(2000).optional()
 });
 export const paymentSchema = z.object({
   amountMinor: z.number().int().positive(), currency: currency.optional(),

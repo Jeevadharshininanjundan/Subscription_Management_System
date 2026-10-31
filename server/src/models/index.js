@@ -10,3 +10,4 @@ export { Subscription } from './Subscription.js';
 export { SubscriptionPlan } from './SubscriptionPlan.js';
 export { TaxConfiguration } from './TaxConfiguration.js';
 export { User } from './User.js';
+export { Notification } from './Notification.js';

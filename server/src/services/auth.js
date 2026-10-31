@@ -12,7 +12,9 @@ export function safeUser(user) {
     email: user.email,
     name: user.name,
     role: user.role,
-    customerId: user.customerId?.toString() || null
+    customerId: user.customerId?.toString() || null,
+    status: user.status,
+    createdAt: user.createdAt
   };
 }
 

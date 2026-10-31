@@ -5,7 +5,7 @@ import { api } from './services/api.js';
 
 vi.mock('./services/api.js', async () => {
   const actual = await vi.importActual('./services/api.js');
-  return { ...actual, api: { get: vi.fn(), post: vi.fn() } };
+  return { ...actual, api: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } };
 });
 
 describe('business workspace', () => {
@@ -35,5 +35,40 @@ describe('business workspace', () => {
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'SERVICE' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create product' }));
     await waitFor(() => expect(api.post).toHaveBeenCalledWith('/products', expect.objectContaining({ name: 'Support', type: 'SERVICE' })));
+  });
+
+  it('allows an admin to list, add, and deactivate staff', async () => {
+    window.history.pushState({}, '', '/account');
+    api.get.mockImplementation(path => {
+      if (path === '/auth/me') return Promise.resolve({ data: { data: { user: { name: 'Admin', email: 'admin@example.com', role: 'ADMIN' } } } });
+      if (path === '/staff') return Promise.resolve({ data: { data: { users: [{ id: 'staff-1', name: 'Staff User', email: 'staff@example.com', role: 'STAFF', status: 'ACTIVE', createdAt: '2026-01-01' }] } } });
+      return Promise.resolve({ data: { data: [] } });
+    });
+    api.post.mockResolvedValue({ data: { data: { user: {} } } });
+    api.patch.mockResolvedValue({ data: { data: { user: {} } } });
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Staff administration' })).toBeInTheDocument();
+    expect(await screen.findByText('staff@example.com')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add staff member' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'New Staff' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'StrongPass!9' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create staff member' }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/staff', {
+      name: 'New Staff', email: 'new@example.com', password: 'StrongPass!9'
+    }));
+    fireEvent.click(screen.getByRole('button', { name: 'Deactivate' }));
+    await waitFor(() => expect(api.patch).toHaveBeenCalledWith('/staff/staff-1', { status: 'INACTIVE' }));
+  });
+
+  it('redirects non-admin users away from staff administration', async () => {
+    window.history.pushState({}, '', '/account');
+    api.get.mockImplementation(path => {
+      if (path === '/auth/me') return Promise.resolve({ data: { data: { user: { name: 'Staff', email: 'staff@example.com', role: 'STAFF' } } } });
+      return Promise.resolve({ data: { data: { users: [] } } });
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Staff administration' })).not.toBeInTheDocument());
+    expect(screen.queryByRole('link', { name: 'Staff administration' })).not.toBeInTheDocument();
   });
 });

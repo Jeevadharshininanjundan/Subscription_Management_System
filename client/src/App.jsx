@@ -7,6 +7,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import StaffAdministrationPage from './pages/StaffAdministrationPage.jsx';
 import { ConfigurationPage, CustomersPage, DetailPage, InvoicesPage, InvoiceDetailPage, PaymentsPage, PlansPage, ProductDetailPage, ProductsPage, QuotationCreatePage, QuotationsPage, SubscriptionsPage } from './pages/ResourcePages.jsx';
 import './styles.css';
 
@@ -69,7 +70,7 @@ export default function App() {
             <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route path="/customers/:id" element={<DetailPage resource="customers" title="Customer details" fields={['name', 'primaryEmail', 'phone', 'status']} />} />
             <Route path="/subscriptions/:id" element={<DetailPage resource="subscriptions" title="Subscription details" fields={['subscriptionNumber', 'customerId', 'status', 'nextBillingDate', 'totalMinor', 'currency']} />} />
-            <Route path="/account" element={<Status />} />
+            <Route element={<ProtectedRoute roles={['ADMIN']} />}><Route path="/account" element={<StaffAdministrationPage />} /></Route>
           </Route></Route>
         </Routes>
       </AuthProvider>

@@ -5,12 +5,15 @@ export function createMailTransport() {
   if (env.NODE_ENV === 'test') {
     return nodemailer.createTransport({ jsonTransport: true });
   }
+  if (!env.SMTP_HOST) {
+    throw Object.assign(new Error('SMTP is not configured.'), { code: 'MAIL_NOT_CONFIGURED' });
+  }
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_SECURE === 'true',
+    auth: env.SMTP_USER
+      ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
       : undefined
   });
 }

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { nonNegativeInteger, validateDateOrder } from '../utils/validation.js';
-import { addMonetaryTotals, snapshotLineSchema, timestampOptions } from './common.js';
+import { addMonetaryTotals, calculationSnapshotSchema, snapshotLineSchema, timestampOptions } from './common.js';
 
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, required: true, unique: true, trim: true },
@@ -18,7 +18,9 @@ const invoiceSchema = new mongoose.Schema({
   confirmedAt: Date,
   sentAt: Date,
   cancelledAt: Date,
-  cancellationReason: { type: String, trim: true }
+  cancellationReason: { type: String, trim: true },
+  calculationSnapshot: calculationSnapshotSchema,
+  discountUsageAccountedAt: Date
 }, timestampOptions);
 
 addMonetaryTotals(invoiceSchema);

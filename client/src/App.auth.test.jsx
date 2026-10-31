@@ -6,7 +6,7 @@ import { api } from './services/api.js';
 
 vi.mock('./services/api.js', async () => {
   const actual = await vi.importActual('./services/api.js');
-  return { ...actual, api: { get: vi.fn(), post: vi.fn() } };
+  return { ...actual, api: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } };
 });
 
 describe('authentication client flows', () => {
