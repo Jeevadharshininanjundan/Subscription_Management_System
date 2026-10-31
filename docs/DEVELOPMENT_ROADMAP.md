@@ -79,6 +79,7 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Phase 7A status:** Authorization and ownership hardening is complete. Quotation acceptance is role-restricted, customer resource reads are ownership-scoped, administrative tax/discount reads are restricted to Admin/Staff, and security regression coverage is passing. Notifications, renewals, templates, reporting, and exports remain future Phase 7 work.
 - **Phase 7B status:** Server-driven tax selection, discount eligibility, bounded discount usage accounting, and immutable financial calculation snapshots are implemented and covered by backend regression tests. Production should use replica-set transactions for the strongest confirmation guarantees; tax exemption/jurisdiction policy remains a documented schema limitation.
 - **Phase 7C status:** Reusable HTML/plain-text notifications, delivery tracking, duplicate prevention, SMTP/test transport configuration, and integrations for quotation, invoice, payment, and overdue events are implemented. Renewal reminders are exposed as a reusable service for future scheduler/workflow integration; retry execution remains future work.
+- **Phase 7D status:** Discount lifecycle UI integration is complete. Quotation creation selects active discounts and submits their identifiers; quotation, subscription, and invoice views render persisted financial snapshots and payment balances. The existing tax-before-discount order and recurring snapshot reuse policy remain unchanged.
 
 ## Phase 8: Management dashboard
 

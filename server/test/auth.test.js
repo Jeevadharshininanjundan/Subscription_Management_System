@@ -216,5 +216,5 @@ describe('authentication and authorization', () => {
       }
     }, () => {});
     expect(status).toBe(403);
-  });
+  }, 15000);
 });

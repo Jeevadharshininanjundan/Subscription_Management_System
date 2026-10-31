@@ -58,9 +58,13 @@ describe('core business workflow integration', () => {
 
     const invoice = await Invoice.findOne();
     const payment = await request(app).post(`/api/v1/invoices/${invoice._id}/payments`).set(auth)
-      .send({ amountMinor: 1000, method: 'CARD', paymentDate: '2026-10-31T00:00:00.000Z' });
+      .send({ amountMinor: 400, method: 'CARD', paymentDate: '2026-10-31T00:00:00.000Z' });
     expect(payment.status).toBe(201);
-    expect((await Invoice.findById(invoice._id)).status).toBe('PAID');
+    expect((await Invoice.findById(invoice._id)).toObject()).toMatchObject({ status: 'PARTIALLY_PAID', paidAmountMinor: 400, balanceDueMinor: 600 });
+    const secondPayment = await request(app).post(`/api/v1/invoices/${invoice._id}/payments`).set(auth)
+      .send({ amountMinor: 600, method: 'CARD', paymentDate: '2026-10-31T00:00:00.000Z', externalReference: 'demo-payment-2' });
+    expect(secondPayment.status).toBe(201);
+    expect((await Invoice.findById(invoice._id)).toObject()).toMatchObject({ status: 'PAID', paidAmountMinor: 1000, balanceDueMinor: 0 });
     const overpayment = await request(app).post(`/api/v1/invoices/${invoice._id}/payments`).set(auth)
       .send({ amountMinor: 1, method: 'CARD', paymentDate: '2026-10-31T00:00:00.000Z' });
     expect(overpayment.status).toBe(422);

@@ -348,12 +348,28 @@ export async function runBilling(now = new Date()) {
     { $set: { status: 'OVERDUE' } }
   );
   await Promise.all(overdue.map(invoice => notifySafely(() => notifyOverdueInvoice(invoice._id))));
-  const due = await Subscription.find({ status: 'ACTIVE', nextBillingDate: { $lte: now } }).populate('planId');
+  const active = await Subscription.find({ status: 'ACTIVE' }).populate('planId');
+  const due = active.filter(subscription => (
+    subscription.startDate <= now && subscription.nextBillingDate <= now
+  ));
+  const skipped = active
+    .filter(subscription => !due.some(item => item._id.equals(subscription._id)))
+    .map(subscription => ({
+      subscriptionId: subscription._id,
+      subscriptionNumber: subscription.subscriptionNumber,
+      reason: subscription.startDate > now ? 'START_DATE_IN_FUTURE' : 'NEXT_BILLING_DATE_NOT_DUE',
+      startDate: subscription.startDate,
+      nextBillingDate: subscription.nextBillingDate
+    }));
   const invoices = [];
+  const errors = [];
   for (const subscription of due) {
-    try { invoices.push(await generateInvoice(subscription, now)); } catch (error) { console.error(`Billing failed for ${subscription._id}: ${error.message}`); }
+    try { invoices.push(await generateInvoice(subscription, now)); } catch (error) {
+      console.error(`Billing failed for ${subscription._id}: ${error.message}`);
+      errors.push({ subscriptionId: subscription._id, subscriptionNumber: subscription.subscriptionNumber, message: error.message });
+    }
   }
-  return invoices;
+  return { invoices, skipped, errors };
 }
 
 export async function recordPayment(invoiceId, input, actorId) {

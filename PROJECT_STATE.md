@@ -344,3 +344,9 @@
 ## Remaining prompt budget
 
 14 of 15 initially, adjusted for subsequent requests.
+
+## Phase 7D discount lifecycle UI
+
+- Staff/Admin quotation creation loads active discounts from `GET /api/v1/discounts` and submits only the selected `discountId`; financial amounts remain server-authoritative.
+- Quotation, subscription, and invoice detail views display persisted subtotal, discount, tax, total, line snapshots, and calculation snapshot metadata.
+- Existing financial policy is preserved: tax is calculated before subtracting the document-level discount, and recurring invoices reuse the subscription's original financial snapshot without revalidating discount eligibility.

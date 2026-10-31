@@ -122,3 +122,19 @@ The public API must not expose an unauthenticated billing trigger. A scheduled j
 - Test duplicate conversion, billing retry, and payment retry using repeated requests.
 - Test totals, tax, discounts, due dates, and status transitions at the API/service boundary.
 
+The protected `POST /api/v1/billing/run` response includes `data.invoices`, `data.count`,
+`data.skipped`, and `data.errors`. Active subscriptions are billed only when both
+`startDate` and `nextBillingDate` are at or before the billing time. A skipped entry
+identifies an active subscription whose billing date is not due; an error entry identifies
+a due subscription whose invoice generation failed.
+
+Payment external references are idempotency keys per invoice. The payment index migration
+must be run once against an existing database after deployment:
+
+```powershell
+npm run migrate:payment-indexes --workspace server
+```
+
+This drops only the legacy `invoiceId_1_externalReference_1` index and recreates it as a
+partial unique index that applies when `externalReference` is a string. It does not delete
+payment documents.

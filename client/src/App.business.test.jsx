@@ -71,4 +71,54 @@ describe('business workspace', () => {
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Staff administration' })).not.toBeInTheDocument());
     expect(screen.queryByRole('link', { name: 'Staff administration' })).not.toBeInTheDocument();
   });
+
+  it('loads active discounts, submits only the selected discount id, and renders server totals', async () => {
+    window.history.pushState({}, '', '/quotations/new');
+    api.get.mockImplementation(path => {
+      if (path === '/auth/me') return Promise.resolve({ data: { data: { user: { name: 'Staff', email: 'staff@example.com', role: 'STAFF' } } } });
+      if (path === '/customers') return Promise.resolve({ data: { data: [{ _id: 'customer-1', name: 'Acme' }] } });
+      if (path === '/plans') return Promise.resolve({ data: { data: [{ _id: 'plan-1', name: 'Pro', basePriceMinor: 10000, currency: 'USD' }] } });
+      if (path === '/discounts') return Promise.resolve({ data: { data: [{ _id: 'discount-1', name: 'Spring offer', kind: 'PERCENTAGE', value: 10, scope: 'SUBSCRIPTION', status: 'ACTIVE' }, { _id: 'discount-2', name: 'Archived', kind: 'FIXED', value: 500, currency: 'USD', status: 'ARCHIVED' }] } });
+      return Promise.resolve({ data: { data: [] } });
+    });
+    api.post.mockResolvedValue({ data: { data: { _id: 'quotation-1', quotationNumber: 'QUO-1', subtotalMinor: 10000, discountMinor: 1000, taxMinor: 1800, totalMinor: 10800, currency: 'USD', calculationSnapshot: { discount: { name: 'Spring offer', amountMinor: 1000, kind: 'PERCENTAGE', value: 10 } } } } });
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Create quotation' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Customer'), { target: { value: 'customer-1' } });
+    fireEvent.change(screen.getByLabelText('Plan'), { target: { value: 'plan-1' } });
+    fireEvent.change(screen.getByLabelText('Valid until'), { target: { value: '2026-12-31' } });
+    fireEvent.change(screen.getByLabelText('Discount'), { target: { value: 'discount-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create quotation' }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/quotations', expect.objectContaining({ discountId: 'discount-1' })));
+    expect(await screen.findByText('Server-calculated financial breakdown')).toBeInTheDocument();
+    expect(screen.getByText('$108.00')).toBeInTheDocument();
+    expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+  });
+
+  it('renders persisted quotation and invoice financial breakdowns', async () => {
+    api.get.mockImplementation(path => {
+      if (path === '/auth/me') return Promise.resolve({ data: { data: { user: { name: 'Staff', email: 'staff@example.com', role: 'STAFF' } } } });
+      if (path === '/quotations/q1') return Promise.resolve({ data: { data: { _id: 'q1', quotationNumber: 'QUO-1', customerId: 'customer-1', status: 'ACCEPTED', issuedAt: '2026-01-01', validUntil: '2026-12-31', currency: 'USD', lines: [], subtotalMinor: 10000, discountMinor: 1000, taxMinor: 1800, totalMinor: 10800, calculationSnapshot: { discount: { name: 'Spring offer', amountMinor: 1000, kind: 'PERCENTAGE', value: 10 } } } } });
+      return Promise.resolve({ data: { data: [] } });
+    });
+    window.history.pushState({}, '', '/quotations/q1');
+    render(<App />);
+    expect((await screen.findAllByText(/Spring offer/)).length).toBeGreaterThan(0);
+    expect(screen.getByText('$108.00')).toBeInTheDocument();
+  });
+
+  it('renders the persisted invoice breakdown, print action, and payment balance', async () => {
+    api.get.mockImplementation(path => {
+      if (path === '/auth/me') return Promise.resolve({ data: { data: { user: { name: 'Staff', email: 'staff@example.com', role: 'STAFF' } } } });
+      if (path === '/invoices/i1') return Promise.resolve({ data: { data: { invoiceNumber: 'INV-1', customerId: 'customer-1', issueDate: '2026-01-01', dueDate: '2026-02-01', status: 'PARTIALLY_PAID', currency: 'USD', lines: [{ name: 'Pro', quantity: 1, unitPriceMinor: 10000, taxAmountMinor: 1800, totalMinor: 10800, currency: 'USD' }], subtotalMinor: 10000, discountMinor: 1000, taxMinor: 1800, totalMinor: 10800, paidAmountMinor: 5000, balanceDueMinor: 5800, calculationSnapshot: { discount: { name: 'Spring offer', amountMinor: 1000, kind: 'PERCENTAGE', value: 10 } } } } });
+      if (path === '/invoices/i1/payments') return Promise.resolve({ data: { data: [{ _id: 'payment-1', amountMinor: 5000, currency: 'USD', method: 'CARD' }] } });
+      return Promise.resolve({ data: { data: [] } });
+    });
+    window.history.pushState({}, '', '/invoices/i1');
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'INV-1' })).toBeInTheDocument();
+    expect(screen.getByText('Print invoice')).toBeInTheDocument();
+    expect(screen.getByText('$58.00')).toBeInTheDocument();
+    expect(screen.getByText('CARD')).toBeInTheDocument();
+  });
 });

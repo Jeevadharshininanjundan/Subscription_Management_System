@@ -7,6 +7,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node src/scripts/createAdmin.js",
+    "migrate:payment-indexes": "node src/scripts/migratePaymentIndexes.js",
     "lint": "eslint .",
     "test": "vitest run"
   },

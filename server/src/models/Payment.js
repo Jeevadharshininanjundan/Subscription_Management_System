@@ -17,5 +17,8 @@ const paymentSchema = new mongoose.Schema({
 
 paymentSchema.index({ invoiceId: 1, paymentDate: 1, status: 1 });
 paymentSchema.index({ customerId: 1, paymentDate: 1 });
-paymentSchema.index({ invoiceId: 1, externalReference: 1 }, { unique: true, sparse: true });
+paymentSchema.index(
+  { invoiceId: 1, externalReference: 1 },
+  { unique: true, partialFilterExpression: { externalReference: { $type: 'string' } } }
+);
 export const Payment = mongoose.model('Payment', paymentSchema);

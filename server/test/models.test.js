@@ -5,6 +5,7 @@ import { connectDatabase, disconnectDatabase } from '../src/config/database.js';
 import {
   Customer,
   Invoice,
+  Payment,
   Product,
   ProductVariant,
   Subscription,
@@ -165,6 +166,42 @@ describe('Mongoose data contracts and persistence', () => {
 
     await Invoice.create({ ...invoice, invoiceNumber: 'INV-0001' });
     await expect(Invoice.create({ ...invoice, invoiceNumber: 'INV-0002' }))
+      .rejects.toMatchObject({ code: 11000 });
+  });
+
+  it('allows multiple payments without external references but enforces supplied reference uniqueness per invoice', async () => {
+    const { customer, subscription } = await createBaseRecords();
+    const invoice = await Invoice.create({
+      invoiceNumber: 'INV-PAY-1',
+      subscriptionId: subscription._id,
+      customerId: customer._id,
+      status: 'ISSUED',
+      billingPeriodStart: new Date('2026-02-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-03-01T00:00:00.000Z'),
+      billingPeriodKey: '2026-02-payments',
+      issueDate: new Date('2026-02-01T00:00:00.000Z'),
+      dueDate: new Date('2026-02-15T00:00:00.000Z'),
+      lines: [line],
+      currency: 'USD',
+      subtotalMinor: 10000,
+      taxMinor: 0,
+      discountMinor: 0,
+      totalMinor: 10000,
+      paidAmountMinor: 0,
+      balanceDueMinor: 10000
+    });
+    const basePayment = {
+      invoiceId: invoice._id,
+      customerId: customer._id,
+      currency: 'USD',
+      method: 'CARD',
+      paymentDate: new Date('2026-02-02T00:00:00.000Z'),
+      amountMinor: 1000
+    };
+    await Payment.create(basePayment);
+    await Payment.create({ ...basePayment, amountMinor: 2000, paymentDate: new Date('2026-02-03T00:00:00.000Z'), externalReference: null });
+    await Payment.create({ ...basePayment, amountMinor: 3000, externalReference: 'txn-1' });
+    await expect(Payment.create({ ...basePayment, amountMinor: 4000, externalReference: 'txn-1' }))
       .rejects.toMatchObject({ code: 11000 });
   });
 });
