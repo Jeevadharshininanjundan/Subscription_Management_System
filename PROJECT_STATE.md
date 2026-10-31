@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 0 — Requirements and architecture**
+**Phase 1 — Project foundation**
 
 ## Completed work
 
@@ -18,6 +18,12 @@
   - `docs/API_DESIGN.md`
   - `docs/DEVELOPMENT_ROADMAP.md`
   - `PROJECT_STATE.md`
+- Initialized the Phase 1 npm workspace with separate `client` and `server` packages.
+- Added Vite/React/Tailwind client foundation with React Router and an intentionally feature-free landing/status shell.
+- Added Express server foundation with Helmet, CORS, JSON limits, request IDs, safe environment validation, standard errors, and live/readiness health endpoints.
+- Added client and server smoke tests.
+- Added lint, test, build, and combined check scripts.
+- Added development-safe `.env.example` templates and `.gitignore` protections.
 
 ## Architecture decisions
 
@@ -31,8 +37,7 @@
 
 ## Pending tasks
 
-- Review and approve Phase 0 documentation.
-- Initialize the project foundation in Phase 1.
+- Begin Phase 2 database schemas and data contracts.
 - Decide token transport/refresh strategy and production MongoDB transaction configuration during implementation.
 - Define concrete environment variables, CI commands, and deployment target after Phase 0 approval.
 
@@ -42,7 +47,52 @@
 - Billing concurrency and transaction behavior must be tested against the selected MongoDB deployment.
 - Dashboard performance depends on representative data volume and index/aggregation validation.
 - Tax, currency, overpayment, cancellation, and renewal policies may require business-owner decisions before implementation.
-- No Git repository or remote was present at inspection time, so a GitHub commit/push cannot yet be verified.
+- npm audit currently reports dependency advisories; these must be reviewed before production deployment and are not addressed by Phase 1 feature work.
+
+## Phase 1 files changed
+
+- `package.json`
+- `package-lock.json`
+- `.gitignore`
+- `README.md`
+- `client/package.json`
+- `client/.env.example`
+- `client/eslint.config.js`
+- `client/index.html`
+- `client/vite.config.js`
+- `client/src/App.jsx`
+- `client/src/main.jsx`
+- `client/src/styles.css`
+- `client/src/test/setup.js`
+- `client/src/App.test.jsx`
+- `server/package.json`
+- `server/.env.example`
+- `server/eslint.config.js`
+- `server/vitest.config.js`
+- `server/src/config/env.js`
+- `server/src/middleware/errorHandler.js`
+- `server/src/middleware/requestId.js`
+- `server/src/routes/health.js`
+- `server/src/app.js`
+- `server/src/server.js`
+- `server/test/health.test.js`
+
+## Phase 1 validation
+
+- `npm run check` — passed: lint, client/server tests, and client production build.
+- `npm run lint --workspace client` — passed.
+- `npm run lint --workspace server` — passed.
+- `npm test --workspace client` — 1 test passed.
+- `npm test --workspace server` — 3 tests passed.
+- `npm run build --workspace client` — passed.
+- Live health endpoint probe — `/health/live` and `/api/v1/health/ready` returned expected responses.
+- `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities after upgrading Zod to `^4.6.7`.
+
+## Phase 1 known issues and boundaries
+
+- Database connectivity is intentionally not configured; MongoDB schemas and data contracts belong to Phase 2.
+- Authentication, authorization, domain routes, billing, email, and analytics are intentionally not implemented.
+- Full development startup requires `npm install` and local `.env` files copied from the committed templates.
 
 ## Next phase
 

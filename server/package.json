@@ -1,0 +1,24 @@
+{
+  "name": "@brightloop/server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "eslint": "^9.22.0",
+    "supertest": "^7.1.1",
+    "vitest": "^3.0.9"
+  }
+}
