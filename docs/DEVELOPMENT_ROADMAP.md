@@ -56,6 +56,7 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Deliverables:** Usable operational workflows.
 - **Acceptance:** Staff and customers can complete MVP flows with server errors surfaced clearly.
 - **Testing:** React Testing Library component/page tests and API-mocked workflow tests.
+- **Implementation status:** Core authenticated shell, dashboard, live-data listings, catalog/plan/customer creation forms, and quotation/subscription lifecycle controls are implemented. Detail/mutation coverage and payment-history API support remain before Phase 5 sign-off.
 
 ## Phase 6: End-to-end integration
 

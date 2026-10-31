@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 4 — Core backend functionality**
+**Phase 5 — Frontend business modules and dashboard**
 
 ## Completed work
 
@@ -40,6 +40,10 @@
 - Added archive semantics for catalog/customer records, compatible quarterly and half-yearly plan intervals, trial-day configuration, partial/overdue invoice states, and duplicate payment-reference protection.
 - Added integer-minor-unit quotation/subscription calculation, discount eligibility checks, lifecycle transition validation, invoice period idempotency, and payment balance enforcement.
 - Added an executable recurring billing job and authenticated staff billing trigger.
+- Added a responsive authenticated application layout with sidebar, top navigation, profile/logout controls, protected routes, loading/error/empty states, and role-aware navigation.
+- Added a live-data dashboard deriving customer, product, subscription, invoice, quotation, and collected-payment metrics from implemented backend endpoints.
+- Added frontend business screens for products, plans, customers, taxes, discounts, quotations, subscriptions, invoices, and invoice payment balances.
+- Added product/plan/customer creation forms and subscription and quotation lifecycle actions wired to the implemented backend routes.
 
 ## Architecture decisions
 
@@ -50,6 +54,31 @@
 - Use deterministic subscription billing-period keys and unique database constraints to make recurring billing safe under retries and overlapping scheduler execution.
 - Use integer minor units with explicit currency for persisted money.
 - Treat historical financial and catalog records as immutable; archive referenced catalog records rather than hard-delete them.
+
+## Phase 5 files changed
+
+- `client/src/App.jsx`
+- `client/src/styles.css`
+- `client/src/components/AppLayout.jsx`
+- `client/src/components/ResourceState.jsx`
+- `client/src/pages/DashboardPage.jsx`
+- `client/src/pages/ResourcePages.jsx`
+- `client/src/pages/LoginPage.jsx`
+- `client/src/pages/RegisterPage.jsx`
+- `client/src/App.business.test.jsx`
+
+## Phase 5 validation
+
+- `npm run check` — passed: client/server lint, 26 tests, and client production build.
+- Frontend tests: 8 passed, including dashboard rendering, role-aware navigation, protected route behavior, product form submission, and existing authentication flows.
+- Backend regression tests: 18 passed.
+- No Git commands, commits, pushes, branches, or PDF changes were made.
+
+## Phase 5 known issues and boundaries
+
+- The backend currently has no standalone `GET /payments` endpoint; the Payments page therefore displays invoice payment balances from `GET /invoices` and does not fabricate individual payment history.
+- Product edit/archive, variant management UI, quotation creation form, detailed record pages, invoice confirmation/cancellation/send/print, and chart visualizations remain incomplete.
+- Dashboard metrics are bounded by current backend list responses; pagination and dedicated dashboard aggregation endpoints are still required for production-scale data.
 
 ## Phase 4 files changed
 
@@ -84,7 +113,7 @@
 ## Pending tasks
 
 - Add Phase 4 API and financial integration tests covering all new routes and transaction topology.
-- Begin Phase 5 primary frontend experience after API review.
+- Complete the remaining Phase 5 detail and mutation screens, then begin Phase 6 end-to-end integration.
 - Decide whether to replace demonstration localStorage bearer-token storage with HttpOnly Secure cookies and CSRF protection before production deployment.
 - Define concrete SMTP credentials and production mail delivery configuration outside source control.
 

@@ -1,10 +1,13 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import AppLayout from './components/AppLayout.jsx';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import { ConfigurationPage, CustomersPage, InvoicesPage, PaymentsPage, PlansPage, ProductsPage, QuotationsPage, SubscriptionsPage } from './pages/ResourcePages.jsx';
 import './styles.css';
 
 function FoundationHome() {
@@ -13,6 +16,7 @@ function FoundationHome() {
     <main className="shell">
       <nav aria-label="Primary navigation">
         {!user && <><Link to="/login">Sign in</Link><Link to="/register">Register</Link></>}
+        {user && <Link to="/dashboard">Open workspace</Link>}
         {user?.role === 'ADMIN' && <Link to="/account">Staff administration</Link>}
         {user && <button onClick={logout}>Sign out</button>}
       </nav>
@@ -50,7 +54,18 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route element={<ProtectedRoute />}><Route path="/account" element={<Status />} /></Route>
+          <Route element={<ProtectedRoute />}><Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/plans" element={<PlansPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/configuration" element={<ConfigurationPage />} />
+            <Route path="/quotations" element={<QuotationsPage />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/invoices" element={<InvoicesPage />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/account" element={<Status />} />
+          </Route></Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

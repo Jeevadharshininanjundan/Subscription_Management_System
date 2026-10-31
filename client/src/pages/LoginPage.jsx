@@ -15,7 +15,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(form);
-      navigate('/');
+      navigate('/dashboard');
     } catch (submissionError) {
       setError(submissionError.message);
     } finally {

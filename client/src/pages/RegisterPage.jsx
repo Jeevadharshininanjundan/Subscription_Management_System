@@ -17,7 +17,7 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await register(form);
-      navigate('/');
+      navigate('/dashboard');
     } catch (submissionError) {
       setError(submissionError.message);
     } finally {
