@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 1 — Project foundation**
+**Phase 2 — Database and data contracts**
 
 ## Completed work
 
@@ -24,6 +24,11 @@
 - Added client and server smoke tests.
 - Added lint, test, build, and combined check scripts.
 - Added development-safe `.env.example` templates and `.gitignore` protections.
+- Added Mongoose database configuration with safe connection error handling and database-backed readiness reporting.
+- Added modular Mongoose models for Users, Customers, Products, Product Variants, Subscription Plans, Quotation Templates, Quotations, Subscriptions, Discounts, Invoices, Payments, and Tax Configurations.
+- Added shared schema conventions for timestamps, normalized names/emails, enums, references, immutable line snapshots, integer minor-unit money, and UTC date ranges.
+- Added documented compound and unique indexes, including subscription billing-period uniqueness.
+- Added money and UTC date utilities with unit coverage.
 
 ## Architecture decisions
 
@@ -49,32 +54,23 @@
 - Tax, currency, overpayment, cancellation, and renewal policies may require business-owner decisions before implementation.
 - npm audit currently reports dependency advisories; these must be reviewed before production deployment and are not addressed by Phase 1 feature work.
 
-## Phase 1 files changed
+## Phase 2 files changed
 
 - `package.json`
 - `package-lock.json`
-- `.gitignore`
 - `README.md`
-- `client/package.json`
-- `client/.env.example`
-- `client/eslint.config.js`
-- `client/index.html`
-- `client/vite.config.js`
-- `client/src/App.jsx`
-- `client/src/main.jsx`
-- `client/src/styles.css`
-- `client/src/test/setup.js`
-- `client/src/App.test.jsx`
 - `server/package.json`
 - `server/.env.example`
-- `server/eslint.config.js`
-- `server/vitest.config.js`
 - `server/src/config/env.js`
-- `server/src/middleware/errorHandler.js`
-- `server/src/middleware/requestId.js`
+- `server/src/config/database.js`
+- `server/src/utils/money.js`
+- `server/src/utils/dates.js`
+- `server/src/utils/validation.js`
+- `server/src/models/`
 - `server/src/routes/health.js`
-- `server/src/app.js`
 - `server/src/server.js`
+- `server/test/models.test.js`
+- `server/test/utils.test.js`
 - `server/test/health.test.js`
 
 ## Phase 1 validation
@@ -88,15 +84,41 @@
 - Live health endpoint probe — `/health/live` and `/api/v1/health/ready` returned expected responses.
 - `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities after upgrading Zod to `^4.6.7`.
 
-## Phase 1 known issues and boundaries
+## Phase 2 known issues and boundaries
 
-- Database connectivity is intentionally not configured; MongoDB schemas and data contracts belong to Phase 2.
 - Authentication, authorization, domain routes, billing, email, and analytics are intentionally not implemented.
 - Full development startup requires `npm install` and local `.env` files copied from the committed templates.
+- Persistence tests require a reachable MongoDB instance at `MONGO_TEST_URI`; the Phase 2 suite was run against the local MongoDB 8.0 service.
+- Development dependency advisories remain in the full npm audit report; production dependencies report zero vulnerabilities.
+
+## Phase 2 models and indexes
+
+- `User`: unique normalized email; role/status index.
+- `Customer`: unique normalized primary email; unique sparse portal user reference; name/status index.
+- `Product`: status/type/name index.
+- `ProductVariant`: unique product/name compound index; product/status index.
+- `SubscriptionPlan`: status/availability compound index; name/status index.
+- `QuotationTemplate`: status/name index.
+- `Quotation`: unique quotation number; customer/status/validity index; unique sparse conversion reference.
+- `Subscription`: unique subscription number; customer/status, status/next billing, and plan/status indexes; unique sparse quotation reference.
+- `Discount`: status/active-window index.
+- `Invoice`: unique invoice number; unique subscription/billing-period compound index; customer/status/due-date and subscription/status indexes.
+- `Payment`: invoice/date/status and customer/date indexes.
+- `TaxConfiguration`: status/active-window index.
+
+## Phase 2 validation
+
+- `npm run check` — passed: client/server lint, tests, and client production build.
+- Server persistence suite — 4 model tests passed against local MongoDB.
+- Server utility suite — 4 money/date tests passed.
+- Server health suite — 3 tests passed.
+- Total server tests — 11 passed.
+- Live `/health/live` and `/api/v1/health/ready` probes — HTTP 200; database check `ok`.
+- `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities.
 
 ## Next phase
 
-**Phase 1 — Project foundation.** Do not begin until Phase 0 documentation is approved.
+**Phase 3 — Authentication and user management.** Do not begin until Phase 2 database contracts and indexes are approved.
 
 ## Remaining prompt budget
 

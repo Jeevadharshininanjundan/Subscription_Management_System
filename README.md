@@ -39,4 +39,4 @@ The server listens on `http://localhost:5000` by default. Health endpoints:
 - `GET /health/ready`
 - `GET /api/v1/health`
 
-The readiness endpoint reports that the foundation process is ready while database connectivity remains a Phase 2 concern.
+The readiness endpoint reports application and MongoDB connectivity status. A `503` response means the process is alive but not ready to serve database-dependent work.

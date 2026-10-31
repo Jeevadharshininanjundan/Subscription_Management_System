@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
+import { isDatabaseReady } from '../src/config/database.js';
 
 const app = createApp();
 
@@ -16,11 +17,11 @@ describe('health endpoints', () => {
     expect(response.body.meta.requestId).toBe('test-request');
   });
 
-  it('reports readiness without exposing configuration', async () => {
+  it('reports readiness state without exposing configuration', async () => {
     const response = await request(app).get('/api/v1/health/ready');
 
-    expect(response.status).toBe(200);
-    expect(response.body.data.status).toBe('ready');
+    expect(response.status).toBe(isDatabaseReady() ? 200 : 503);
+    expect(response.body.data.status).toBe(isDatabaseReady() ? 'ready' : 'not-ready');
     expect(response.body).not.toHaveProperty('env');
   });
 

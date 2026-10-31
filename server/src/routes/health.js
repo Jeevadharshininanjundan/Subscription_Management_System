@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isDatabaseReady } from '../config/database.js';
 
 export const healthRouter = Router();
 
@@ -14,12 +15,13 @@ healthRouter.get('/live', (_request, response) => {
 });
 
 healthRouter.get('/ready', (_request, response) => {
-  response.json({
+  const databaseReady = isDatabaseReady();
+  response.status(databaseReady ? 200 : 503).json({
     data: {
-      status: 'ready',
+      status: databaseReady ? 'ready' : 'not-ready',
       checks: {
         application: 'ok',
-        database: 'not-configured'
+        database: databaseReady ? 'ok' : 'unavailable'
       }
     },
     meta: { requestId: response.getHeader('x-request-id') },
