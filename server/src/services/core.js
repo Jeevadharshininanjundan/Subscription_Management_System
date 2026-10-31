@@ -62,6 +62,7 @@ export async function productCreate(input) { return Product.create(input); }
 export async function productUpdate(id, input) { return Product.findByIdAndUpdate(id, input, { new: true, runValidators: true }); }
 export async function productArchive(id) { return Product.findByIdAndUpdate(id, { status: 'ARCHIVED', archivedAt: new Date() }, { new: true }); }
 export async function variantCreate(productId, input) { return ProductVariant.create({ ...input, productId }); }
+export async function variantList(productId) { return ProductVariant.find({ productId }).sort({ createdAt: -1 }); }
 export async function variantUpdate(id, input) { return ProductVariant.findByIdAndUpdate(id, input, { new: true, runValidators: true }); }
 export async function variantArchive(id) { return ProductVariant.findByIdAndUpdate(id, { status: 'ARCHIVED' }, { new: true }); }
 export async function customerCreate(input) { return Customer.create(input); }
@@ -74,6 +75,26 @@ export async function taxCreate(input) { return TaxConfiguration.create(input); 
 export async function taxUpdate(id, input) { return TaxConfiguration.findByIdAndUpdate(id, input, { new: true, runValidators: true }); }
 export async function discountCreate(input) { return Discount.create(input); }
 export async function discountUpdate(id, input) { return Discount.findByIdAndUpdate(id, input, { new: true, runValidators: true }); }
+export async function paymentList(invoiceId) { return Payment.find({ invoiceId }).sort({ paymentDate: -1 }); }
+
+export async function confirmInvoice(id) {
+  const invoice = await Invoice.findById(id);
+  if (!invoice || invoice.status === 'CANCELLED' || invoice.status === 'PAID') throw Object.assign(new Error('Invoice cannot be confirmed.'), { code: 'INVALID_TRANSITION', status: 409 });
+  invoice.status = invoice.balanceDueMinor === 0 ? 'PAID' : 'CONFIRMED';
+  invoice.confirmedAt = new Date();
+  await invoice.save();
+  return invoice;
+}
+
+export async function cancelInvoice(id, reason) {
+  const invoice = await Invoice.findById(id);
+  if (!invoice || invoice.status === 'PAID' || invoice.paidAmountMinor > 0) throw Object.assign(new Error('Paid invoices cannot be cancelled.'), { code: 'INVALID_TRANSITION', status: 409 });
+  invoice.status = 'CANCELLED';
+  invoice.cancelledAt = new Date();
+  invoice.cancellationReason = reason;
+  await invoice.save();
+  return invoice;
+}
 
 export async function quotationCreate(input) {
   const customer = await Customer.findById(input.customerId);
@@ -164,19 +185,24 @@ export async function runBilling(now = new Date()) {
 
 export async function recordPayment(invoiceId, input, actorId) {
   const session = await mongoose.startSession();
+  const applyPayment = async (activeSession) => {
+    const invoice = await Invoice.findById(invoiceId).session(activeSession);
+    if (!invoice || invoice.status === 'CANCELLED') throw Object.assign(new Error('Invoice is not payable.'), { code: 'INVALID_PAYMENT', status: 422 });
+    assertAmountMinor(input.amountMinor);
+    if (input.amountMinor > invoice.balanceDueMinor) throw Object.assign(new Error('Payment exceeds invoice balance.'), { code: 'OVERPAYMENT', status: 422 });
+    const [payment] = await Payment.create([{ ...input, invoiceId, customerId: invoice.customerId, currency: invoice.currency, recordedBy: actorId }], activeSession ? { session: activeSession } : undefined);
+    invoice.paidAmountMinor += input.amountMinor;
+    invoice.balanceDueMinor -= input.amountMinor;
+    invoice.status = invoice.balanceDueMinor === 0 ? 'PAID' : 'PARTIALLY_PAID';
+    await invoice.save(activeSession ? { session: activeSession } : undefined);
+    return payment;
+  };
   try {
     let payment;
-    await session.withTransaction(async () => {
-      const invoice = await Invoice.findById(invoiceId).session(session);
-      if (!invoice || invoice.status === 'CANCELLED') throw Object.assign(new Error('Invoice is not payable.'), { code: 'INVALID_PAYMENT', status: 422 });
-      assertAmountMinor(input.amountMinor);
-      if (input.amountMinor > invoice.balanceDueMinor) throw Object.assign(new Error('Payment exceeds invoice balance.'), { code: 'OVERPAYMENT', status: 422 });
-      payment = await Payment.create([{ ...input, invoiceId, customerId: invoice.customerId, currency: invoice.currency, recordedBy: actorId }], { session }).then(values => values[0]);
-      invoice.paidAmountMinor += input.amountMinor;
-      invoice.balanceDueMinor -= input.amountMinor;
-      invoice.status = invoice.balanceDueMinor === 0 ? 'PAID' : 'PARTIALLY_PAID';
-      await invoice.save({ session });
-    });
+    await session.withTransaction(async () => { payment = await applyPayment(session); });
     return payment;
+  } catch (error) {
+    if (!/Transaction numbers are only allowed|replica set/i.test(error.message)) throw error;
+    return applyPayment(null);
   } finally { await session.endSession(); }
 }

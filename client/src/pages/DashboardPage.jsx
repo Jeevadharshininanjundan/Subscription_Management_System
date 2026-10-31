@@ -1,21 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, getApiErrorMessage } from '../services/api.js';
 import { ErrorState, LoadingState, EmptyState } from '../components/ResourceState.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const money = (minor, currency = 'USD') => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format((minor || 0) / 100);
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [state, setState] = useState({ loading: true, error: '', data: {} });
   const load = useCallback(async () => {
     setState(current => ({ ...current, loading: true, error: '' }));
     try {
-      const responses = await Promise.all(['customers', 'products', 'subscriptions', 'invoices', 'quotations'].map(resource => api.get(`/${resource}`)));
-      const [customers, products, subscriptions, invoices, quotations] = responses.map(response => response.data.data || []);
+      const resources = user?.role === 'CUSTOMER'
+        ? ['customers', 'subscriptions', 'invoices', 'quotations']
+        : ['customers', 'products', 'subscriptions', 'invoices', 'quotations'];
+      const responses = await Promise.all(resources.map(resource => api.get(`/${resource}`)));
+      const values = responses.map(response => response.data.data || []);
+      const customers = values[0]; const products = user?.role === 'CUSTOMER' ? [] : values[1];
+      const offset = user?.role === 'CUSTOMER' ? 1 : 2;
+      const subscriptions = values[offset]; const invoices = values[offset + 1]; const quotations = values[offset + 2];
       setState({ loading: false, error: '', data: { customers, products, subscriptions, invoices, quotations } });
     } catch (error) {
       setState({ loading: false, error: getApiErrorMessage(error), data: {} });
     }
-  }, []);
+  }, [user]);
   useEffect(() => { load(); }, [load]);
   if (state.loading) return <LoadingState />;
   if (state.error) return <ErrorState message={state.error} onRetry={load} />;

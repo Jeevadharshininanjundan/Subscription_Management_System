@@ -66,6 +66,7 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Deliverables:** End-to-end happy paths and failure paths.
 - **Acceptance:** Quote-to-subscription-to-invoice-to-payment works without manual database changes.
 - **Testing:** Full API/UI integration and idempotency retry tests.
+- **Implementation status:** Core quotation-to-subscription, lifecycle, recurring billing, payment, ownership, and frontend detail workflows are integrated and covered by automated backend and frontend tests. Pagination, scheduler deployment, and browser-level E2E remain open.
 
 ## Phase 7: Secondary features and integrations
 

@@ -25,6 +25,7 @@ export default function AppLayout() {
           {links.filter(([, , roles]) => roles.includes(user?.role)).map(([to, label]) => (
             <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>{label}</NavLink>
           ))}
+          {(user?.role === 'ADMIN' || user?.role === 'STAFF') && <NavLink to="/quotations/new" className="nav-item">New quotation</NavLink>}
           {user?.role === 'ADMIN' && <NavLink to="/account" className="nav-item">Staff administration</NavLink>}
         </nav>
         <div className="sidebar-footer">

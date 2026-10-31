@@ -7,9 +7,17 @@ const fail = (message, code = 'NOT_FOUND', status = 404) => Object.assign(new Er
 function customerFilter(req) {
   return req.user.role === 'CUSTOMER' ? { customerId: req.user.customerId } : {};
 }
-async function list(Model, req, res) { return ok(res, req, await Model.find(customerFilter(req)).sort({ createdAt: -1 })); }
+async function list(Model, req, res) {
+  if (req.user.role === 'CUSTOMER' && Model === Customer) {
+    return ok(res, req, await Model.find({ _id: req.user.customerId }).sort({ createdAt: -1 }));
+  }
+  return ok(res, req, await Model.find(customerFilter(req)).sort({ createdAt: -1 }));
+}
 async function get(Model, req, res) {
-  const record = await Model.findOne({ _id: id(req), ...customerFilter(req) });
+  const filter = req.user.role === 'CUSTOMER' && Model === Customer
+    ? { _id: req.user.customerId }
+    : { _id: id(req), ...customerFilter(req) };
+  const record = await Model.findOne(filter);
   if (!record) throw fail('Resource not found.');
   return ok(res, req, record);
 }
@@ -25,7 +33,8 @@ export const products = {
   create: (req, res, next) => mutate(() => core.productCreate(req.body), req, res, 201).catch(next),
   update: (req, res, next) => mutate(() => core.productUpdate(id(req), req.body), req, res).catch(next),
   remove: (req, res, next) => mutate(() => core.productArchive(id(req)), req, res).catch(next),
-  variants: (req, res, next) => mutate(() => core.variantCreate(id(req), req.body), req, res, 201).catch(next)
+  variants: (req, res, next) => mutate(() => core.variantCreate(id(req), req.body), req, res, 201).catch(next),
+  variantsList: (req, res, next) => core.variantList(id(req)).then(data => ok(res, req, data)).catch(next)
 };
 export const variants = {
   update: (req, res, next) => mutate(() => core.variantUpdate(id(req), req.body), req, res).catch(next),
@@ -73,5 +82,8 @@ export const subscriptions = {
 export const invoices = {
   list: (req, res, next) => list(Invoice, req, res).catch(next),
   get: (req, res, next) => get(Invoice, req, res).catch(next),
-  pay: (req, res, next) => mutate(() => core.recordPayment(id(req), req.body, req.user._id), req, res, 201).catch(next)
+  pay: (req, res, next) => mutate(() => core.recordPayment(id(req), req.body, req.user._id), req, res, 201).catch(next),
+  payments: (req, res, next) => core.paymentList(id(req)).then(data => ok(res, req, data)).catch(next),
+  confirm: (req, res, next) => mutate(() => core.confirmInvoice(id(req)), req, res).catch(next),
+  cancel: (req, res, next) => mutate(() => core.cancelInvoice(id(req), req.body.reason), req, res).catch(next)
 };

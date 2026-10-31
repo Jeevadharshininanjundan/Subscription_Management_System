@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 5 — Frontend business modules and dashboard**
+**Phase 6 — System integration, end-to-end testing and stabilization**
 
 ## Completed work
 
@@ -44,6 +44,10 @@
 - Added a live-data dashboard deriving customer, product, subscription, invoice, quotation, and collected-payment metrics from implemented backend endpoints.
 - Added frontend business screens for products, plans, customers, taxes, discounts, quotations, subscriptions, invoices, and invoice payment balances.
 - Added product/plan/customer creation forms and subscription and quotation lifecycle actions wired to the implemented backend routes.
+- Added end-to-end integration coverage for quotation conversion, subscription activation, recurring billing, idempotent retry conditions, payment recording, and overpayment rejection.
+- Corrected customer self-resource filtering and added authenticated payment-history, invoice confirmation/cancellation, and product-variant API endpoints.
+- Added core request validation for products, plans, customers, quotations, payments, and invoice cancellation.
+- Added product editing/archive controls, product variant detail management, quotation creation, customer/subscription/invoice detail views, invoice printing, and supported invoice actions.
 
 ## Architecture decisions
 
@@ -54,6 +58,34 @@
 - Use deterministic subscription billing-period keys and unique database constraints to make recurring billing safe under retries and overlapping scheduler execution.
 - Use integer minor units with explicit currency for persisted money.
 - Treat historical financial and catalog records as immutable; archive referenced catalog records rather than hard-delete them.
+
+## Phase 6 files changed
+
+- `server/src/controllers/core.js`
+- `server/src/services/core.js`
+- `server/src/routes/core.js`
+- `server/src/validators/core.js`
+- `server/test/core.integration.test.js`
+- `client/src/App.jsx`
+- `client/src/components/AppLayout.jsx`
+- `client/src/pages/ResourcePages.jsx`
+- `client/src/pages/DashboardPage.jsx`
+- `client/src/styles.css`
+
+## Phase 6 validation
+
+- `npm run check` — passed: client/server lint, 27 tests, and client production build.
+- Backend workflow integration test passed against the local MongoDB test database.
+- Verified customer ownership filtering, role gates, invalid lifecycle/payment responses, and safe error responses.
+- `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities.
+- No Git commands, commits, pushes, branches, or PDF changes were made.
+
+## Phase 6 known issues and boundaries
+
+- Billing catch-up may create successive due periods when a subscription is far behind; the unique subscription-period index prevents duplicate periods.
+- MongoDB transactions require replica-set deployment; standalone local MongoDB uses a documented fallback payment path for development.
+- Dashboard and list endpoints still return unpaginated collections; production-scale pagination and dedicated aggregation endpoints remain future work.
+- Email delivery, scheduler deployment, and browser-level automated testing remain deployment/integration concerns.
 
 ## Phase 5 files changed
 
@@ -112,8 +144,8 @@
 
 ## Pending tasks
 
-- Add Phase 4 API and financial integration tests covering all new routes and transaction topology.
-- Complete the remaining Phase 5 detail and mutation screens, then begin Phase 6 end-to-end integration.
+- Add pagination and dashboard aggregation endpoints before production-scale demonstration data.
+- Complete Phase 7 secondary notifications, renewal requests, and overdue follow-up.
 - Decide whether to replace demonstration localStorage bearer-token storage with HttpOnly Secure cookies and CSRF protection before production deployment.
 - Define concrete SMTP credentials and production mail delivery configuration outside source control.
 
