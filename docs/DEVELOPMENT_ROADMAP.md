@@ -76,6 +76,7 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Deliverables:** Secondary workflows without weakening core controls.
 - **Acceptance:** Notifications and edge-case statuses are observable and recoverable.
 - **Testing:** Mail adapter tests, notification failure/retry tests, role tests.
+- **Phase 7A status:** Authorization and ownership hardening is complete. Quotation acceptance is role-restricted, customer resource reads are ownership-scoped, administrative tax/discount reads are restricted to Admin/Staff, and security regression coverage is passing. Notifications, renewals, templates, reporting, and exports remain future Phase 7 work.
 
 ## Phase 8: Management dashboard
 

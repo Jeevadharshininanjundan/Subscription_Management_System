@@ -4,6 +4,7 @@ import * as core from '../services/core.js';
 const ok = (res, req, data, status = 200) => res.status(status).json({ data, meta: { requestId: req.requestId }, error: null });
 const id = req => req.params.id;
 const fail = (message, code = 'NOT_FOUND', status = 404) => Object.assign(new Error(message), { code, status });
+const forbidden = message => Object.assign(new Error(message), { code: 'FORBIDDEN', status: 403 });
 function customerFilter(req) {
   return req.user.role === 'CUSTOMER' ? { customerId: req.user.customerId } : {};
 }
@@ -14,11 +15,16 @@ async function list(Model, req, res) {
   return ok(res, req, await Model.find(customerFilter(req)).sort({ createdAt: -1 }));
 }
 async function get(Model, req, res) {
-  const filter = req.user.role === 'CUSTOMER' && Model === Customer
-    ? { _id: req.user.customerId }
-    : { _id: id(req), ...customerFilter(req) };
-  const record = await Model.findOne(filter);
+  const record = await Model.findById(Model === Customer && req.user.role === 'CUSTOMER'
+    ? req.user.customerId
+    : id(req));
   if (!record) throw fail('Resource not found.');
+  if (req.user.role === 'CUSTOMER') {
+    const ownerId = Model === Customer ? record._id : record.customerId;
+    if (ownerId?.toString() !== req.user.customerId?.toString()) {
+      throw forbidden('You do not have access to this customer resource.');
+    }
+  }
   return ok(res, req, record);
 }
 async function mutate(action, req, res, status = 200) {
@@ -83,7 +89,19 @@ export const invoices = {
   list: (req, res, next) => list(Invoice, req, res).catch(next),
   get: (req, res, next) => get(Invoice, req, res).catch(next),
   pay: (req, res, next) => mutate(() => core.recordPayment(id(req), req.body, req.user._id), req, res, 201).catch(next),
-  payments: (req, res, next) => core.paymentList(id(req)).then(data => ok(res, req, data)).catch(next),
+  payments: async (req, res, next) => {
+    try {
+      const invoice = await Invoice.findById(id(req));
+      if (!invoice) throw fail('Resource not found.');
+      if (req.user.role === 'CUSTOMER'
+        && invoice.customerId.toString() !== req.user.customerId?.toString()) {
+        throw forbidden('You do not have access to this customer resource.');
+      }
+      return ok(res, req, await core.paymentList(id(req)));
+    } catch (error) {
+      return next(error);
+    }
+  },
   confirm: (req, res, next) => mutate(() => core.confirmInvoice(id(req)), req, res).catch(next),
   cancel: (req, res, next) => mutate(() => core.cancelInvoice(id(req), req.body.reason), req, res).catch(next)
 };

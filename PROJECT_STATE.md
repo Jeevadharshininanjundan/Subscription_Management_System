@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 6 — System integration, end-to-end testing and stabilization**
+**Phase 7A — Authorization, ownership isolation and security fixes**
 
 ## Completed work
 
@@ -48,6 +48,29 @@
 - Corrected customer self-resource filtering and added authenticated payment-history, invoice confirmation/cancellation, and product-variant API endpoints.
 - Added core request validation for products, plans, customers, quotations, payments, and invoice cancellation.
 - Added product editing/archive controls, product variant detail management, quotation creation, customer/subscription/invoice detail views, invoice printing, and supported invoice actions.
+- Restricted quotation acceptance to Admin/Staff and enforced customer ownership on quotation detail reads.
+- Enforced customer ownership on invoice payment-history reads with standardized `403 FORBIDDEN` responses.
+- Restricted tax and discount configuration reads to Admin/Staff.
+- Added Phase 7A security regression coverage for cross-customer access, customer quotation acceptance, configuration access, staff administration, and invalid tokens.
+
+## Phase 7A files changed
+
+- `server/src/controllers/core.js`
+- `server/src/routes/core.js`
+- `server/test/authorization.security.test.js`
+
+## Phase 7A validation
+
+- `npm run check` — passed: client/server lint, 30 tests, and client production build.
+- Security regression suite: 3 tests passed.
+- Verified Admin and Staff legitimate access, Staff denial from staff administration, customer isolation, customer denial of administrative configuration, and invalid-token rejection.
+- No Git commands, commits, pushes, branches, or PDF changes were made.
+
+## Phase 7A remaining risks
+
+- Demonstration bearer tokens remain in browser localStorage and require HttpOnly Secure cookies plus CSRF protection before production.
+- Payment recording uses a standalone-MongoDB fallback when transactions are unavailable; production should use a replica set.
+- Quotation/customer/invoice APIs still need broader pagination and audit logging in later phases.
 
 ## Architecture decisions
 

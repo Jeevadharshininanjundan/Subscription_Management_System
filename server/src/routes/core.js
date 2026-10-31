@@ -32,17 +32,17 @@ coreRouter.get('/customers/:id', customers.get);
 coreRouter.patch('/customers/:id', staff, customers.update);
 coreRouter.delete('/customers/:id', staff, customers.remove);
 
-coreRouter.get('/taxes', configuration.taxes.list);
+coreRouter.get('/taxes', staff, configuration.taxes.list);
 coreRouter.post('/taxes', admin, configuration.taxes.create);
 coreRouter.patch('/taxes/:id', admin, configuration.taxes.update);
-coreRouter.get('/discounts', configuration.discounts.list);
+coreRouter.get('/discounts', staff, configuration.discounts.list);
 coreRouter.post('/discounts', staff, configuration.discounts.create);
 coreRouter.patch('/discounts/:id', staff, configuration.discounts.update);
 
 coreRouter.get('/quotations', quotations.list);
 coreRouter.post('/quotations', staff, validateBody(quotationSchema), quotations.create);
 coreRouter.get('/quotations/:id', quotations.get);
-coreRouter.post('/quotations/:id/accept', quotations.accept);
+coreRouter.post('/quotations/:id/accept', staff, quotations.accept);
 coreRouter.post('/quotations/:id/convert', staff, quotations.convert);
 
 coreRouter.get('/subscriptions', subscriptions.list);
