@@ -4,10 +4,11 @@ import { timestampOptions } from './common.js';
 
 const subscriptionPlanSchema = new mongoose.Schema({
   name: { type: String, required: true, set: normalizeName, trim: true },
-  billingInterval: { type: String, required: true, enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] },
+  billingInterval: { type: String, required: true, enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'YEARLY'] },
   basePriceMinor: { ...nonNegativeInteger, required: true },
   currency: { type: String, required: true, uppercase: true, match: /^[A-Z]{3}$/ },
   minimumQuantity: { ...positiveInteger, required: true },
+  trialDays: { ...nonNegativeInteger, default: 0 },
   availableFrom: { type: Date, required: true },
   availableUntil: { type: Date, validate: validateDateOrder('availableFrom', 'availableUntil') },
   status: { type: String, required: true, enum: ['ACTIVE', 'ARCHIVED'], default: 'ACTIVE' },

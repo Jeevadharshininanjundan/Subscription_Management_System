@@ -39,3 +39,15 @@ export function addMonetaryTotals(schema) {
     totalMinor: { ...nonNegativeInteger, required: true, default: 0 }
   });
 }
+
+export function calculateLineTotals(line) {
+  const subtotalMinor = line.quantity * line.unitPriceMinor;
+  const taxAmountMinor = Math.floor((subtotalMinor * line.taxRateBasisPoints) / 10000);
+  return {
+    ...line,
+    subtotalMinor,
+    taxAmountMinor,
+    discountAmountMinor: line.discountAmountMinor || 0,
+    totalMinor: subtotalMinor + taxAmountMinor - (line.discountAmountMinor || 0)
+  };
+}

@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, set: normalizeName, trim: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   lastLoginAt: Date,
+  tokenVersion: { type: Number, required: true, default: 0 },
   resetTokenHash: { type: String, select: false },
   resetTokenExpiresAt: { type: Date, select: false }
 }, timestampOptions);

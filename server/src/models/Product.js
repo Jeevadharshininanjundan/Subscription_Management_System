@@ -5,6 +5,7 @@ import { timestampOptions } from './common.js';
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, set: normalizeName, trim: true },
   type: { type: String, required: true, trim: true },
+  description: { type: String, trim: true },
   salesPriceMinor: { ...nonNegativeInteger, required: true },
   costPriceMinor: { ...nonNegativeInteger, required: true },
   currency: { type: String, required: true, uppercase: true, match: /^[A-Z]{3}$/ },

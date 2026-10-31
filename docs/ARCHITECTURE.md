@@ -92,6 +92,7 @@ Errors should expose a stable code and safe message, not stack traces, secrets, 
 
 ## 5. Security Architecture
 
+- Phase 3 uses short-lived JWT access tokens in the `Authorization: Bearer` header. The browser stores the access token in `localStorage` for this demonstration foundation, which is vulnerable to token theft if a future XSS defect exists; production hardening should prefer an HttpOnly Secure cookie with CSRF protection before deployment.
 - Passwords use bcrypt with a current cost factor selected during implementation.
 - JWT claims contain a user identifier, role, issuer, audience, and expiry; validate all claims.
 - Reset tokens are random, single-use, hashed at rest, and expire quickly.
@@ -101,6 +102,7 @@ Errors should expose a stable code and safe message, not stack traces, secrets, 
 - Use secure HTTP-only cookie transport if refresh tokens are used; otherwise define a documented token storage policy before implementation.
 - Configure CORS to known client origins and use Helmet/security headers.
 - Do not log authorization headers, passwords, reset tokens, or full payment-sensitive data.
+- Logout increments the user's server-side token version, invalidating previously issued access tokens.
 
 ## 6. Billing and Consistency Architecture
 
@@ -142,4 +144,3 @@ To decide during implementation:
 - Email provider SMTP configuration and retry policy.
 - Initial pagination defaults and dashboard aggregation strategy.
 - Whether audit events receive a dedicated collection or an append-only event table.
-

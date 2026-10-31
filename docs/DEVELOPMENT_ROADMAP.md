@@ -46,6 +46,7 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Deliverables:** Server-authoritative core API and idempotent billing.
 - **Acceptance:** Lifecycle, calculation, invoice uniqueness, payment balance, discount eligibility, and recurring billing invariants pass.
 - **Testing:** Unit, integration, transaction/concurrency, and Supertest API suites.
+- **Implementation status:** Core server routes/services are implemented for the MVP. Phase 4 remains subject to dedicated API/financial integration and concurrency tests before release sign-off.
 
 ## Phase 5: Primary frontend experience
 
@@ -118,4 +119,3 @@ Each phase ends with reviewable deliverables and tests. Later phases must not si
 - **Deliverables:** Versioned release and presentation-ready walkthrough.
 - **Acceptance:** Demonstration covers admin, staff, customer, billing, payment, and analytics journeys.
 - **Testing:** Final acceptance rehearsal and regression run.
-

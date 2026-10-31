@@ -6,7 +6,7 @@ const invoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, required: true, unique: true, trim: true },
   subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', required: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-  status: { type: String, required: true, enum: ['DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED'], default: 'DRAFT' },
+  status: { type: String, required: true, enum: ['DRAFT', 'ISSUED', 'CONFIRMED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED'], default: 'DRAFT' },
   billingPeriodStart: { type: Date, required: true },
   billingPeriodEnd: { type: Date, required: true, validate: validateDateOrder('billingPeriodStart', 'billingPeriodEnd') },
   billingPeriodKey: { type: String, required: true, trim: true },

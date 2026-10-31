@@ -7,7 +7,12 @@ const environmentSchema = z.object({
   CLIENT_ORIGIN: z.string().url().default('http://localhost:5173'),
   SERVICE_NAME: z.string().min(1).default('brightloop-subscription-server'),
   MONGO_URI: z.string().min(1).default('mongodb://127.0.0.1:27017/brightloop_subscription'),
-  MONGO_TEST_URI: z.string().min(1).default('mongodb://127.0.0.1:27017/brightloop_subscription_test')
+  MONGO_TEST_URI: z.string().min(1).default('mongodb://127.0.0.1:27017/brightloop_subscription_test'),
+  JWT_SECRET: z.string().min(32),
+  JWT_ISSUER: z.string().min(1).default('brightloop-subscription'),
+  JWT_AUDIENCE: z.string().min(1).default('brightloop-client'),
+  JWT_EXPIRES_IN: z.string().min(1).default('15m'),
+  MAIL_FROM: z.string().email().default('no-reply@brightloop.local')
 });
 
 const result = environmentSchema.safeParse(process.env);

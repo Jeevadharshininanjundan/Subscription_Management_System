@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 2 — Database and data contracts**
+**Phase 4 — Core backend functionality**
 
 ## Completed work
 
@@ -29,6 +29,17 @@
 - Added shared schema conventions for timestamps, normalized names/emails, enums, references, immutable line snapshots, integer minor-unit money, and UTC date ranges.
 - Added documented compound and unique indexes, including subscription billing-period uniqueness.
 - Added money and UTC date utilities with unit coverage.
+- Implemented customer registration with enforced password policy and customer-only role assignment.
+- Implemented bcrypt password hashing, short-lived JWT authentication, server-side token-version logout revocation, and safe current-user profile responses.
+- Implemented forgot-password and reset-password workflows with hashed, expiring, single-use cryptographic reset tokens.
+- Added Nodemailer password-reset mail adapter using JSON transport in tests and SMTP configuration in non-test environments.
+- Added authentication middleware, role authorization, customer ownership middleware, and login/registration/reset rate limiting.
+- Added admin-only staff management endpoints.
+- Added React authentication context, login/registration/forgot/reset pages, protected routes, bearer-token API service, session-expiry handling, and role-aware navigation.
+- Added server-authoritative Phase 4 services and routes for products, variants, plans, taxes, discounts, customers, quotations, subscriptions, invoices, payments, and billing.
+- Added archive semantics for catalog/customer records, compatible quarterly and half-yearly plan intervals, trial-day configuration, partial/overdue invoice states, and duplicate payment-reference protection.
+- Added integer-minor-unit quotation/subscription calculation, discount eligibility checks, lifecycle transition validation, invoice period idempotency, and payment balance enforcement.
+- Added an executable recurring billing job and authenticated staff billing trigger.
 
 ## Architecture decisions
 
@@ -40,11 +51,42 @@
 - Use integer minor units with explicit currency for persisted money.
 - Treat historical financial and catalog records as immutable; archive referenced catalog records rather than hard-delete them.
 
+## Phase 4 files changed
+
+- `server/src/models/Product.js`
+- `server/src/models/SubscriptionPlan.js`
+- `server/src/models/Subscription.js`
+- `server/src/models/Invoice.js`
+- `server/src/models/Payment.js`
+- `server/src/models/common.js`
+- `server/src/services/core.js`
+- `server/src/controllers/core.js`
+- `server/src/controllers/billing.js`
+- `server/src/routes/core.js`
+- `server/src/jobs/billing.js`
+- `server/src/middleware/errorHandler.js`
+- `server/src/app.js`
+
+## Phase 4 validation
+
+- Existing backend regression tests passed: 17 tests.
+- `npm run check` — passed: client/server lint, 23 tests, and client production build.
+- `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities.
+- Persistence behavior for unique invoice periods remains covered by the Phase 2 MongoDB suite.
+- No Git commands, commits, pushes, branches, or PDF changes were made.
+
+## Phase 4 known issues and boundaries
+
+- Frontend business screens, analytics, notifications, and payment gateways remain out of scope.
+- Billing scheduler deployment still needs an operational cron runner; `executeBillingJob` is the integration seam.
+- Financial transaction behavior requires replica-set deployment for MongoDB transactions; the MVP payment service must be verified against the deployment topology.
+
 ## Pending tasks
 
-- Begin Phase 2 database schemas and data contracts.
-- Decide token transport/refresh strategy and production MongoDB transaction configuration during implementation.
-- Define concrete environment variables, CI commands, and deployment target after Phase 0 approval.
+- Add Phase 4 API and financial integration tests covering all new routes and transaction topology.
+- Begin Phase 5 primary frontend experience after API review.
+- Decide whether to replace demonstration localStorage bearer-token storage with HttpOnly Secure cookies and CSRF protection before production deployment.
+- Define concrete SMTP credentials and production mail delivery configuration outside source control.
 
 ## Outstanding risks
 
@@ -73,7 +115,7 @@
 - `server/test/utils.test.js`
 - `server/test/health.test.js`
 
-## Phase 1 validation
+## Phase 1 validation (completed)
 
 - `npm run check` — passed: lint, client/server tests, and client production build.
 - `npm run lint --workspace client` — passed.
@@ -86,10 +128,70 @@
 
 ## Phase 2 known issues and boundaries
 
-- Authentication, authorization, domain routes, billing, email, and analytics are intentionally not implemented.
+- Products, subscriptions, quotations, invoices, payments, billing, and analytics are intentionally not implemented.
 - Full development startup requires `npm install` and local `.env` files copied from the committed templates.
 - Persistence tests require a reachable MongoDB instance at `MONGO_TEST_URI`; the Phase 2 suite was run against the local MongoDB 8.0 service.
 - Development dependency advisories remain in the full npm audit report; production dependencies report zero vulnerabilities.
+- Bearer access tokens stored in localStorage are suitable only for this demonstration foundation and require production hardening against XSS.
+
+## Phase 3 files changed
+
+- `server/package.json`
+- `server/package-lock.json`
+- `server/.env.example`
+- `server/src/config/env.js`
+- `server/src/models/User.js`
+- `server/src/utils/password.js`
+- `server/src/utils/jwt.js`
+- `server/src/utils/crypto.js`
+- `server/src/services/auth.js`
+- `server/src/services/mail.js`
+- `server/src/validators/auth.js`
+- `server/src/controllers/auth.js`
+- `server/src/controllers/staff.js`
+- `server/src/middleware/auth.js`
+- `server/src/middleware/validate.js`
+- `server/src/middleware/rateLimiters.js`
+- `server/src/routes/auth.js`
+- `server/src/routes/staff.js`
+- `server/src/app.js`
+- `server/src/server.js`
+- `server/vitest.config.js`
+- `server/test/setup.js`
+- `server/test/auth.test.js`
+- `client/src/services/api.js`
+- `client/src/context/AuthContext.jsx`
+- `client/src/routes/ProtectedRoute.jsx`
+- `client/src/pages/LoginPage.jsx`
+- `client/src/pages/RegisterPage.jsx`
+- `client/src/pages/ForgotPasswordPage.jsx`
+- `client/src/pages/ResetPasswordPage.jsx`
+- `client/src/App.jsx`
+- `client/src/styles.css`
+- `client/src/App.auth.test.jsx`
+
+## Phase 3 validation
+
+- `npm run check` — passed: client/server lint, tests, and client production build.
+- Backend authentication/authorization suite — 6 tests passed.
+- Backend Phase 2 regression suites — 11 tests passed.
+- Frontend authentication suite — 5 tests passed.
+- Live MongoDB persistence remained covered by the backend model suite.
+- Password reset email tests used Nodemailer's JSON transport; no real email was sent.
+- Expired and malformed JWTs, logout revocation, role denial, customer isolation, rate limiting, reset expiry, and reset single-use behavior were verified.
+- `npm audit --omit=dev --audit-level=moderate` — passed with 0 production vulnerabilities after upgrading Nodemailer.
+
+## Phase 3 completion status
+
+- Customer registration creates a Customer user and linked Customer record; public requests cannot assign Admin or Staff roles.
+- Login returns a short-lived JWT with issuer, audience, expiry, role, subject, and token-version claims.
+- Logout increments the server-side token version, invalidating the prior token.
+- Password reset tokens use cryptographically random values, SHA-256 hashes at rest, one-hour expiry, and single-use clearing.
+- Forgot-password responses are identical for existing and missing email addresses.
+- Staff list/create/update routes require Admin authorization.
+- Customer ownership middleware rejects requests whose route customer ID differs from the authenticated user's linked customer ID.
+- Client authentication pages, context, protected route, API bearer-token interceptor, session expiry handling, and role-aware navigation are implemented.
+- Selected token transport: short-lived bearer access token stored in browser localStorage for this demonstration. This is documented as an XSS exposure and must be replaced with HttpOnly Secure cookies plus CSRF protection before production.
 
 ## Phase 2 models and indexes
 
@@ -118,7 +220,7 @@
 
 ## Next phase
 
-**Phase 3 — Authentication and user management.** Do not begin until Phase 2 database contracts and indexes are approved.
+**Phase 4 — Core backend functionality.** Do not begin until Phase 3 authentication and authorization are approved.
 
 ## Remaining prompt budget
 

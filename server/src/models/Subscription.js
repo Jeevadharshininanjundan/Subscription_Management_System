@@ -7,7 +7,7 @@ const subscriptionSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   planId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan', required: true },
   quotationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quotation', unique: true, sparse: true },
-  status: { type: String, required: true, enum: ['DRAFT', 'QUOTATION', 'CONFIRMED', 'ACTIVE', 'CLOSED'], default: 'DRAFT' },
+  status: { type: String, required: true, enum: ['DRAFT', 'QUOTATION', 'CONFIRMED', 'ACTIVE', 'PAUSED', 'CANCELLED', 'CLOSED'], default: 'DRAFT' },
   startDate: { type: Date, required: true },
   expiryDate: { type: Date, validate: validateDateOrder('startDate', 'expiryDate') },
   nextBillingDate: { type: Date, required: true },
